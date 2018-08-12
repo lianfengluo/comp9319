@@ -7,7 +7,7 @@
 #define CODED_LENGTH 255
 #define DECODE_SIZE 40960
 #define CODE_LENGTH 255
-#define STOP_CHAR 128
+#define STOP_CHAR 257
 #define DFS_SIZE 866
 #define SEARCH_PATTERN_MAX 256
 
