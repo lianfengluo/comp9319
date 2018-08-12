@@ -36,13 +36,11 @@ void exploit_tree(nnode *, char [CODING_SIZE][CODED_LENGTH], int[], char[], int*
 int encode(char *, char *);
 
 // decode field
-int find_code(char [], D_tree, int);
-void getbinay(int , char [], int *);
 int decode(char *, char *);
 void free_decode_tree(D_tree*);
 
 // search field
 int search(char *, char *);
 void build_table(int [], char [], int);
-int check_match(int [], char *, int , int);
-// int check_match(int [], char [], int [], int, int, int *);
+// int check_match(int [], char *, int , int);
+int check_match(int [], char [], int [], int, int, int *);

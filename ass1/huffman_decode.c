@@ -1,5 +1,4 @@
 #include"huffman.h"
-// void deep_first_search_build_tree(D_tree* node_ptr, int dfs_code[], int* length, int fixed_len){
 void deep_first_search_build_tree(D_tree* node_ptr, char dfs_code[], int* length, int fixed_len){
     if(dfs_code[*length] == (int)'1'){
         (*length)++;
@@ -31,23 +30,6 @@ void deep_first_search_build_tree(D_tree* node_ptr, char dfs_code[], int* length
             deep_first_search_build_tree(node_ptr->right, dfs_code, length, fixed_len);
         }
     }
-}
-int find_code(char code[], D_tree tree, int size){
-    D_tree* tree_ptr = &tree;
-    for(int i = 0; i != size; i++){
-        if(code[i] == '0'){
-            tree_ptr = tree_ptr->left;
-        } else {
-            tree_ptr = tree_ptr->right;
-        }
-    }
-    return tree_ptr->character;
-}
-void getbinay(int val, char buf[], int *index){
-    int i = 7;
-    for(; i!=-1 ; --i, val /= 2)
-        buf[(*index)+i] = "01"[val % 2];	
-    (*index)+=8;
 }
 void free_decode_tree(D_tree* tree){
     if(tree->left && tree->right){
@@ -104,63 +86,31 @@ int decode(char *src_name, char *decode_file_name){
     }
     fseek(ROutput, 1024, SEEK_SET);
     // input_size is the input size
-    char out_buff[DECODE_SIZE * 2] = {'\0'};
-    char current_code[CODE_LENGTH] = {'\0'};
-    int index = 0;      // index is the get code index
-    int decode_index = 0;
-    int decode_char;
-    int found;
-    int index_p1 = 0;
-    int null_c = STOP_CHAR;
-    // printf("%c, %c \n", tree->left->character, tree->right->character);
+    int finish = 0;
+    D_tree* search_tree = tree;
     while((c=fgetc(ROutput))!=EOF){
-        getbinay(c, out_buff, &index);
-        if(index > DECODE_SIZE){
-            index_p1 = index + 1;
-            while(1){
-                found = 0;
-                for(int i = 0; decode_index + i < index_p1; i++){
-                    current_code[i] = out_buff[decode_index + i];
-                    if ((decode_char = find_code(current_code, *tree, i)) != null_c){
-                        fputc(decode_char, WOrign);
-                        input_size--;
-                        decode_index += i;
-                        found = 1;
-                        if(decode_index == index)
-                            found = 0;
-                        break;
-                    }
-                }
-                if(input_size == 0){
-                    break;
-                }
-                if (!found) {
-                    for (int i = 0; decode_index + i != index_p1; i++){
-                        out_buff[i] = out_buff[decode_index + i];
-                    }
-                    index = index - decode_index;
-                    decode_index = 0;
-                    break;
-                }
+        for(int i = 0; i != BIT_SPACE; i++){
+            if((c & 128) == 0){
+                search_tree = search_tree->left; 
+            } else {
+                search_tree = search_tree->right;
             }
-        }
-    }
-    index_p1 = index + 1;
-    while(input_size != 0){
-        for(int i = 0; decode_index + i != index_p1; i++){
-            current_code[i] = out_buff[decode_index + i];
-            if ((decode_char = find_code(current_code, *tree, i)) != null_c)
-            {
-                fputc(decode_char, WOrign);
+            if(search_tree->character != STOP_CHAR){
+                fputc(search_tree->character, WOrign);
                 input_size--;
-                decode_index += i;
-                break;
+                if(input_size == 0){
+                    finish = 1;
+                    break;
+                }
+                search_tree = tree;
             }
+            c <<= 1;
         }
+        if(finish)
+            break;
     }
     fclose(WOrign);
     fclose(ROutput);
     free_decode_tree(tree);
-
     return 0;
 }

@@ -36,8 +36,7 @@ void _sort_probablity(int *arr1, int *arr2, size_t start, size_t end,
         j++;
     }
 }
-void sort_probablity(int* rank1, int *arr1)
-{
+void sort_probablity(int* rank1, int *arr1) {
     int arr2[CODING_SIZE];
     int rank2[CODING_SIZE];
     memcpy(arr2, arr1, CODING_SIZE * sizeof(int));
@@ -158,18 +157,18 @@ int encode(char* input_file_name, char* output_file){
             }
         }
     }
-    // Just for fun
-    char rest_space_note[] = "Our tutor is the best. Raymond is a great lecturer and interesting.\n";
+    // Padding note
+    char rest_space_note[] = "Our tutor is the best. Raymond's class is very interesting.\n";
     int statistic_space = 1024;
-    // write the dictionary
     FILE* out_f = fopen(output_file, "wb");
+    // write the dictionary
     if(out_f == NULL)
         return -1;
     if(char_appear == 0){
         fputc('0', out_f);
         statistic_space--;
         while(statistic_space != 0){
-            fputc(rest_space_note[(1024 - statistic_space) % 68], out_f);
+            fputc(rest_space_note[(1024 - statistic_space) % 60], out_f);
             statistic_space--;
         }
         fclose(out_f);
@@ -223,45 +222,42 @@ int encode(char* input_file_name, char* output_file){
     statistic_space--;
     // minus the count
     // check the output length of count;
-    int temp_count = count;
-    while(temp_count!=0){
-        temp_count /= 10;
+    while(count != 0){
+        count /= 10;
         statistic_space--;
     }
     while(statistic_space != 0){
-        fputc(rest_space_note[(1024 - statistic_space) % 68], out_f);
+        fputc(rest_space_note[(1024 - statistic_space) % 60], out_f);
         statistic_space--;
     }
 
     fseek(input_file, 0, SEEK_SET);
-    char buffer[OUTPUT_BUFF_SIZE + 1] = {'\0'};
+    // char buffer[OUTPUT_BUFF_SIZE + 1] = {'\0'};
     int output_char;
     int mini_count = 0;
-    while(1){
-        if ((output_char = fgetc(input_file)) == EOF)
-            break;
+    char buffer_shift = '\0';
+    while((output_char = fgetc(input_file)) != EOF){
         for(int j = 0; j != length[output_char]; j++){
-            buffer[mini_count++] = code_space[output_char][j];
-            if(mini_count == OUTPUT_BUFF_SIZE){
-                long c = strtol(buffer, 0, 2);
-                fputc(c, out_f);
+            if(code_space[output_char][j] == '0'){
+                buffer_shift <<= 1;
+            } else {
+                buffer_shift <<= 1;
+                buffer_shift |= 1;
+            }
+            if(++mini_count == OUTPUT_BUFF_SIZE){
+                fputc(buffer_shift, out_f);
                 mini_count = 0;
             }
         }
     }
-    if(mini_count % OUTPUT_BUFF_SIZE != 0){
-        if(mini_count % BIT_SPACE != 0){
-            while(mini_count % BIT_SPACE != 0){
-                buffer[mini_count++] = '0';
-            }
-            buffer[mini_count] = '\0';
+    if(mini_count != 0){
+        while(mini_count != OUTPUT_BUFF_SIZE){
+            buffer_shift <<= 1;
+            mini_count++;
         }
-        long c = strtol(buffer, 0, 2);
-        fputc(c, out_f);
+        fputc(buffer_shift, out_f);
     }
-    // printf("%d\n", count);
     fclose(out_f);
     fclose(input_file);
-
     return 0;
 }

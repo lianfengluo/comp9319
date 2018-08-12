@@ -1,14 +1,27 @@
 #include"huffman.h"
 
-int check_match(int search_buffer[], char *search_pattern, int start_index, int size){
-    for(int i = 0; i != size; i++){
-        // printf("%c", search_buffer[(start_index + i) % size]);
-        if(search_buffer[(start_index - i) % size] != search_pattern[size - 1 - i])
-            return 0;
+void build_table(int bm_table[], char pattern[], int len){
+    for(int i = 0; i != len - 1; i++){
+        bm_table[(int)pattern[i]] = len - 1 - i;
     }
-    return 1;
+    for(int i = 0; i != CODING_SIZE; i++){
+        if(bm_table[i] == 0){
+            bm_table[i] = len;
+        }
+    }
 }
 
+int check_match(int search_buffer[], char search_pattern[], int bm_table[], int start_index,
+                         int len, int *offset){
+    for(int i = 0; i != len; i++){
+        if(search_buffer[(start_index - i) % len] != search_pattern[len - 1 - i]){
+            *offset = bm_table[(int)search_buffer[start_index % len]];
+            return 0;
+        }
+    }
+    *offset = 1;
+    return 1;
+}
 int search(char *searching_pattern, char *filename){
     FILE * search_file = fopen(filename, "rb");
     // repeat the process of decode
@@ -49,77 +62,46 @@ int search(char *searching_pattern, char *filename){
         temp_input_size[count_index++] = c;
     input_size = atoi(temp_input_size);
     fseek(search_file, 1024, SEEK_SET);
-    int null_c = STOP_CHAR;
+// Build BM table
+    int bm_table[CODING_SIZE] = {0};
     int search_pattern_size = (int)strlen(searching_pattern);
-    char out_buff[DECODE_SIZE * 2]={'\0'};
-    char current_code[CODE_LENGTH] = {'\0'};
-    int index = 0;      // index is the get code index
-    int decode_index = 0;
-    int decode_char;
-    int found;
-    int index_p1 = 0;
     int search_buffer[SEARCH_PATTERN_MAX] = {0};
+    build_table(bm_table, searching_pattern, search_pattern_size);
+    int offset = search_pattern_size;
     // use for as search buff index
     int search_index = 0;
     int match_count = 0;
+    int finish = 0;
+    D_tree* search_tree = tree;
     while((c=fgetc(search_file))!=EOF){
-        getbinay(c, out_buff, &index);
-        if(index > DECODE_SIZE){
-            index_p1 = index + 1;
-            while(1){
-                found = 0;
-                for(int i = 0; decode_index + i != index_p1; i++){
-                    current_code[i] = out_buff[decode_index + i];
-                    if ((decode_char = find_code(current_code, *tree, i)) != null_c)
-                    {
-                        // search place
-                        search_buffer[search_index % search_pattern_size] = decode_char;
-                        if(check_match(search_buffer, searching_pattern, 
-                        search_index, search_pattern_size))
-                            match_count++;
-                        search_index++;
-                        input_size--;
-                        decode_index += i;
-                        found = 1;
-                        if(decode_index == index)
-                            found = 0;
-                        break;
-                    }
-                }
-                if(input_size == 0){
-                    break;
-                }
-                if (!found) {
-                    for (int i = 0; decode_index + i != index_p1; i++){
-                        out_buff[i] = out_buff[decode_index + i];
-                    }
-                    index = index - decode_index;
-                    decode_index = 0;
-                    break;
-                }
+        for(int i = 0; i != BIT_SPACE; i++){
+            if((c & 128) == 0){
+                search_tree = search_tree->left; 
+            } else {
+                search_tree = search_tree->right;
             }
-        }
-    }
-    index_p1 = index + 1;
-    while(input_size != 0){
-        for(int i = 0; decode_index + i != index_p1; i++){
-            current_code[i] = out_buff[decode_index + i];
-            if ((decode_char = find_code(current_code, *tree, i)) != null_c)
-            {
-                // printf("%c", decode_char);
-                search_buffer[search_index % search_pattern_size] = decode_char;
-                // printf("\nsearch mod%d\n", search_index % search_pattern_size);
-                if(check_match(search_buffer, searching_pattern, 
-                search_index, search_pattern_size))
-                    match_count++;
+            if(search_tree->character != STOP_CHAR){
+                search_buffer[search_index % search_pattern_size] = search_tree->character;
+                if(--offset < 1){
+                    if(check_match(search_buffer, searching_pattern, bm_table, 
+                    search_index ,search_pattern_size, &offset))
+                        match_count++;
+                }
                 search_index++;
                 input_size--;
-                decode_index += i;
-                break;
+                if(input_size == 0){
+                    finish = 1;
+                    break;
+                }
+                search_tree = tree;
             }
+            c <<= 1;
         }
+        if(finish)
+            break;
     }
     printf("%d\n", match_count);
     fclose(search_file);
+    free_decode_tree(tree);
     return 0;
 }
