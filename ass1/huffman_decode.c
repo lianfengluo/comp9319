@@ -1,5 +1,5 @@
 #include"huffman.h"
-void deep_first_search_build_tree(D_tree* node_ptr, char dfs_code[], int* length, int fixed_len){
+void deep_first_search_build_tree(D_tree* node_ptr, int dfs_code[], int* length, int fixed_len){
     if(dfs_code[*length] == (int)'1'){
         (*length)++;
         node_ptr->character = dfs_code[(*length)++];
@@ -59,10 +59,9 @@ int decode(char *src_name, char *decode_file_name){
         fclose(ROutput);
         return 0;
     }
-    char dfs_arr[DFS_SIZE] = {'\0'};  //store the original ascii
-    if(!fread(dfs_arr, sizeof(char), (size_t)dfs_array_len, ROutput)){
-        printf("error\n");
-        return -1;
+    int dfs_arr[DFS_SIZE] = {0};
+    for(int i = 0; i != dfs_array_len; i++){
+      dfs_arr[i] = fgetc(ROutput); 
     }
     D_tree *tree;
     tree = (D_tree *)malloc(sizeof(D_tree));

@@ -27,7 +27,7 @@ typedef struct decode_tree {
 
 nnode* build_tree(int [], nnode** , int);
 // void deep_first_search_build_tree(D_tree*, int [], int* , int);
-void deep_first_search_build_tree(D_tree*, char [], int* , int);
+void deep_first_search_build_tree(D_tree*, int [], int* , int);
 void _sort_probablity(int *, int *, size_t, size_t, int*, int*);
 void sort_probablity(int *, int*);
 void sort_huffman(int *, nnode**, int);

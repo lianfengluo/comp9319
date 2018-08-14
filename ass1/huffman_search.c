@@ -25,7 +25,7 @@ int check_match(int search_buffer[], char search_pattern[], int bm_table[], int 
 int search(char *searching_pattern, char *filename){
     FILE * search_file = fopen(filename, "rb");
     // repeat the process of decode
-    if(search_file == NULL)
+    if(search_file == NULL || searching_pattern[0] == '\0')
         return -1;
     int dfs_array_len = 0;
     char temp_dfs_array_len[8];
@@ -42,10 +42,9 @@ int search(char *searching_pattern, char *filename){
         fclose(search_file);
         return 0;
     }
-    char dfs_arr[DFS_SIZE] = {'\0'};  //store the original ascii
-    if(!fread(dfs_arr, sizeof(char), (size_t)dfs_array_len, search_file)){
-        printf("error\n");
-        return -1;
+    int dfs_arr[DFS_SIZE] = {0};
+    for(int i = 0; i != dfs_array_len; i++){
+      dfs_arr[i] = fgetc(search_file); 
     }
     D_tree *tree;
     tree = (D_tree *)malloc(sizeof(D_tree));
