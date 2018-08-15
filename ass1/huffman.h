@@ -41,5 +41,6 @@ void free_decode_tree(D_tree*);
 // search field
 int search(char *, char *);
 void build_table(int [], char [], int);
-// int check_match(int [], char *, int , int);
-int check_match(int [], char [], int [], int, int, int *);
+void build_good_suffix_table(char [], int [], int [], int);
+int check_match(int [], char [], int [], int[], int, int, int *);
+

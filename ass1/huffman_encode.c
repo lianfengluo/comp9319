@@ -1,5 +1,5 @@
 #include "huffman.h"
-
+// sort the frequency
 void _sort_probablity(int *arr1, int *arr2, size_t start, size_t end,
                                     int *rank1, int *rank2)
 {
@@ -44,8 +44,7 @@ void sort_probablity(int* rank1, int *arr1) {
     _sort_probablity(arr1, arr2, 0, CODING_SIZE, rank1, rank2);
 }
 
-void sort_huffman(int *arr, nnode **node_ptr, int size)
-{ 
+void sort_huffman(int *arr, nnode **node_ptr, int size) { 
     for(int i = size - 2; i != size; i++){
         for(int j  = 0; j != i; j++){
             if(arr[j] < arr[i]){
@@ -64,7 +63,7 @@ void sort_huffman(int *arr, nnode **node_ptr, int size)
         }
     }
 }
-
+// build tree
 nnode* build_tree(int frequency[], nnode** node_ptr, int char_appear){
     for(int i = char_appear - 1; i != 0; i--){
         nnode *new_node;
@@ -120,7 +119,7 @@ void exploit_tree(nnode *tree, char code_space[CODING_SIZE][CODED_LENGTH], int l
         exploit_tree(tree->right, code_space, length, dfs_arr, count_path);
     }
 }
-
+// encode main function
 int encode(char* input_file_name, char* output_file){
     int count = 0;
     int input;
@@ -232,7 +231,6 @@ int encode(char* input_file_name, char* output_file){
     }
 
     fseek(input_file, 0, SEEK_SET);
-    // char buffer[OUTPUT_BUFF_SIZE + 1] = {'\0'};
     int output_char;
     int mini_count = 0;
     char buffer_shift = '\0';

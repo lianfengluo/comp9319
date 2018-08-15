@@ -1,4 +1,5 @@
 #include"huffman.h"
+// use deep first search to retrieve the tree
 void deep_first_search_build_tree(D_tree* node_ptr, int dfs_code[], int* length, int fixed_len){
     if(dfs_code[*length] == (int)'1'){
         (*length)++;
@@ -38,7 +39,7 @@ void free_decode_tree(D_tree* tree){
     }
     free(tree);
 }
-
+// decode main function
 int decode(char *src_name, char *decode_file_name){
     FILE* ROutput = fopen(src_name, "rb");
     if(ROutput == NULL)

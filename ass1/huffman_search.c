@@ -1,36 +1,61 @@
 #include"huffman.h"
-
+// Building BM table
 void build_table(int bm_table[], char pattern[], int len){
+    for(int i = 0; i != CODING_SIZE; i++){
+        bm_table[i] = len;
+    }
     for(int i = 0; i != len - 1; i++){
         bm_table[(int)pattern[i]] = len - 1 - i;
     }
-    for(int i = 0; i != CODING_SIZE; i++){
-        if(bm_table[i] == 0){
-            bm_table[i] = len;
-        }
-    }
 }
-
-int check_match(int search_buffer[], char search_pattern[], int bm_table[], int start_index,
-                         int len, int *offset){
+// searching match pattern
+int check_match(int search_buffer[], char search_pattern[], int bm_table[], int good_suffix_table[],
+                     int start_index, int len, int *offset){
     for(int i = 0; i != len; i++){
         if(search_buffer[(start_index - i) % len] != search_pattern[len - 1 - i]){
+            // bad matching rule
             *offset = bm_table[(int)search_buffer[start_index % len]];
+            // Implement the good suffix rule
+            if(*offset < good_suffix_table[len - i]){
+                *offset = good_suffix_table[len - i];
+            }
             return 0;
         }
     }
-    *offset = 1;
+    *offset = good_suffix_table[0];
     return 1;
 }
+
+void build_good_suffix_table(char pattern[], int shift_table[], int suffix_table[], int len){
+    int i = len, j = len + 1;
+    suffix_table[i] = j;
+    while(i != 0){
+        while(j <= len && pattern[j - 1] != pattern[i - 1]){
+            if(shift_table[j] == 0){
+                shift_table[j] = j - i;
+            }
+            j = suffix_table[j];
+        }
+        i--;
+        j--;
+        suffix_table[i] = j;
+    }
+    j = suffix_table[0];
+    for(int i = 0; i != len + 1; i++){
+        if(shift_table[i] == 0)
+            shift_table[i] = j;
+        if(i == j)
+            j = suffix_table[j];
+    }
+}
+
 int search(char *searching_pattern, char *filename){
     FILE * search_file = fopen(filename, "rb");
     // repeat the process of decode
     if(search_file == NULL || searching_pattern[0] == '\0')
         return -1;
-    int dfs_array_len = 0;
+    int dfs_array_len = 0, appear_count = 0, c;
     char temp_dfs_array_len[8];
-    int c;
-    int appear_count = 0;
     while((c = fgetc(search_file)) != (char)' '){
         temp_dfs_array_len[appear_count++] = c;
     }
@@ -61,16 +86,25 @@ int search(char *searching_pattern, char *filename){
         temp_input_size[count_index++] = c;
     input_size = atoi(temp_input_size);
     fseek(search_file, 1024, SEEK_SET);
-// Build BM table
+// Build BM table, bad matching rule
     int bm_table[CODING_SIZE] = {0};
     int search_pattern_size = (int)strlen(searching_pattern);
     int search_buffer[SEARCH_PATTERN_MAX] = {0};
     build_table(bm_table, searching_pattern, search_pattern_size);
+    // use to build the reverse suffix matching like KMP
+    int suffix_matching[search_pattern_size + 1];
+    for(int i = 0; i != search_pattern_size + 1; i++){
+        suffix_matching[i] = 0;
+    }
+    // good suffix offset table
+    int good_suffix_table[search_pattern_size + 1];
+    for(int i = 0; i != search_pattern_size + 1; i++){
+        good_suffix_table[i] = 0;
+    }
+    build_good_suffix_table(searching_pattern, good_suffix_table, suffix_matching, search_pattern_size);
     int offset = search_pattern_size;
     // use for as search buff index
-    int search_index = 0;
-    int match_count = 0;
-    int finish = 0;
+    int search_index = 0, match_count = 0, finish = 0;
     D_tree* search_tree = tree;
     while((c=fgetc(search_file))!=EOF){
         for(int i = 0; i != BIT_SPACE; i++){
@@ -82,8 +116,10 @@ int search(char *searching_pattern, char *filename){
             if(search_tree->character != STOP_CHAR){
                 search_buffer[search_index % search_pattern_size] = search_tree->character;
                 if(--offset < 1){
-                    if(check_match(search_buffer, searching_pattern, bm_table, 
+                    if(check_match(search_buffer, searching_pattern, bm_table, good_suffix_table,
                     search_index ,search_pattern_size, &offset))
+                    // if(check_match(search_buffer, searching_pattern, bm_table,
+                    // search_index ,search_pattern_size, &offset))
                         match_count++;
                 }
                 search_index++;
