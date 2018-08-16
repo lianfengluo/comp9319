@@ -120,16 +120,16 @@ void exploit_tree(nnode *tree, char code_space[CODING_SIZE][CODED_LENGTH], int l
     }
 }
 // encode main function
-int encode(char* input_file_name, char* output_file){
+int encode(char* orginal_file_name, char* output_file){
     int count = 0;
     int input;
-    FILE *input_file = fopen(input_file_name, "rb");
-    if(input_file == NULL){
+    FILE *orginal_file = fopen(orginal_file_name, "rb");
+    if(orginal_file == NULL){
         return -1;
     }
     int arr[CODING_SIZE] = {0};
     while (1){
-        if (EOF == (input = fgetc(input_file)))
+        if (EOF == (input = fgetc(orginal_file)))
             break;
         arr[input]++;
         count++;
@@ -159,18 +159,18 @@ int encode(char* input_file_name, char* output_file){
     // Padding note
     char rest_space_note[] = "Our tutor is the best. Raymond's class is very interesting.\n";
     int statistic_space = 1024;
-    FILE* out_f = fopen(output_file, "wb");
+    FILE* encoded_file = fopen(output_file, "wb");
     // write the dictionary
-    if(out_f == NULL)
+    if(encoded_file == NULL)
         return -1;
     if(char_appear == 0){
-        fputc('0', out_f);
+        fputc('0', encoded_file);
         statistic_space--;
         while(statistic_space != 0){
-            fputc(rest_space_note[(1024 - statistic_space) % 60], out_f);
+            fputc(rest_space_note[(1024 - statistic_space) % 60], encoded_file);
             statistic_space--;
         }
-        fclose(out_f);
+        fclose(encoded_file);
         return -1;
     }
     nnode** node_ptr;
@@ -206,17 +206,18 @@ int encode(char* input_file_name, char* output_file){
         free(node_ptr[i]);
     free(node_ptr);
     // write the dfs array length
-    fprintf(out_f, "%d ",(int)count_dfs_char);
+    fprintf(encoded_file, "%d ",(int)count_dfs_char);
     // minus space
     statistic_space--;
-    fwrite(dfs_arr, sizeof(char), count_dfs_char, out_f);
+    fwrite(dfs_arr, sizeof(char), count_dfs_char, encoded_file);
     statistic_space -= count_dfs_char;
     // minis the appear times
     while(count_dfs_char != 0){
         count_dfs_char /= 10;
         statistic_space--;
     }
-    fprintf(out_f, "%d ", count);
+    // to do in fread
+    fprintf(encoded_file, "%d ", count);
     // minus space 1 bype
     statistic_space--;
     // minus the count
@@ -226,36 +227,55 @@ int encode(char* input_file_name, char* output_file){
         statistic_space--;
     }
     while(statistic_space != 0){
-        fputc(rest_space_note[(1024 - statistic_space) % 60], out_f);
+        fputc(rest_space_note[(1024 - statistic_space) % 60], encoded_file);
         statistic_space--;
     }
 
-    fseek(input_file, 0, SEEK_SET);
+    fseek(orginal_file, 0, SEEK_SET);
     int output_char;
     int mini_count = 0;
     char buffer_shift = '\0';
-    while((output_char = fgetc(input_file)) != EOF){
-        for(int j = 0; j != length[output_char]; j++){
-            if(code_space[output_char][j] == '0'){
-                buffer_shift <<= 1;
+    char buffer_read[ENCODE_READING_BUFF_SIZE] = {'\0'};
+    int read_size = 0;
+    char buffer_write[ENCODE_WRITING_BUFF_SIZE] = {'\0'};
+    int write_index = 0;
+    while(1){
+        read_size = fread(buffer_read, sizeof(char), ENCODE_READING_BUFF_SIZE, orginal_file);
+        for(int i = 0; i != read_size; i++){
+            if((int)buffer_read[i] < 0){
+                output_char = (int)buffer_read[i] + 256;
             } else {
-                buffer_shift <<= 1;
-                buffer_shift |= 1;
+                output_char = (int)buffer_read[i] ;
             }
-            if(++mini_count == OUTPUT_BUFF_SIZE){
-                fputc(buffer_shift, out_f);
-                mini_count = 0;
+            for(int j = 0; j != length[output_char]; j++){
+                if(code_space[output_char][j] == '0')
+                    buffer_shift <<= 1;
+                else {
+                    buffer_shift <<= 1;
+                    buffer_shift |= 1;
+                }
+                if(++mini_count == OUTPUT_BUFF_SIZE){
+                    buffer_write[write_index++] = buffer_shift;
+                    mini_count = 0;
+                }
+                if(write_index == ENCODE_WRITING_BUFF_SIZE){
+                    fwrite(buffer_write, sizeof(char), write_index, encoded_file);
+                    write_index = 0;
+                }
             }
         }
+        if(read_size != ENCODE_READING_BUFF_SIZE)
+            break;
     }
     if(mini_count != 0){
         while(mini_count != OUTPUT_BUFF_SIZE){
             buffer_shift <<= 1;
             mini_count++;
         }
-        fputc(buffer_shift, out_f);
+        buffer_write[write_index++] = buffer_shift;
+        fwrite(buffer_write, sizeof(char), write_index, encoded_file);
     }
-    fclose(out_f);
-    fclose(input_file);
+    fclose(encoded_file);
+    fclose(orginal_file);
     return 0;
 }

@@ -29,17 +29,17 @@ int check_match(int search_buffer[], char search_pattern[], int bm_table[], int 
 void build_good_suffix_table(char pattern[], int shift_table[], int suffix_table[], int len){
     int i = len, j = len + 1;
     suffix_table[i] = j;
+    // processing 1: create table that store the shift when it comes to same prefix in the matched string 
     while(i != 0){
         while(j <= len && pattern[j - 1] != pattern[i - 1]){
-            if(shift_table[j] == 0){
+            if(shift_table[j] == 0)
                 shift_table[j] = j - i;
-            }
             j = suffix_table[j];
         }
-        i--;
-        j--;
+        i--; j--;
         suffix_table[i] = j;
     }
+    // processing2: expand the table that when the prefix of pattern match the sub prefix of the matched string
     j = suffix_table[0];
     for(int i = 0; i != len + 1; i++){
         if(shift_table[i] == 0)
@@ -103,36 +103,44 @@ int search(char *searching_pattern, char *filename){
     }
     build_good_suffix_table(searching_pattern, good_suffix_table, suffix_matching, search_pattern_size);
     int offset = search_pattern_size;
-    // use for as search buff index
     int search_index = 0, match_count = 0, finish = 0;
     D_tree* search_tree = tree;
-    while((c=fgetc(search_file))!=EOF){
-        for(int i = 0; i != BIT_SPACE; i++){
-            if((c & 128) == 0){
-                search_tree = search_tree->left; 
-            } else {
-                search_tree = search_tree->right;
-            }
-            if(search_tree->character != STOP_CHAR){
-                search_buffer[search_index % search_pattern_size] = search_tree->character;
-                if(--offset < 1){
-                    if(check_match(search_buffer, searching_pattern, bm_table, good_suffix_table,
-                    search_index ,search_pattern_size, &offset))
-                    // if(check_match(search_buffer, searching_pattern, bm_table,
-                    // search_index ,search_pattern_size, &offset))
-                        match_count++;
-                }
-                search_index++;
-                input_size--;
-                if(input_size == 0){
-                    finish = 1;
-                    break;
-                }
-                search_tree = tree;
-            }
-            c <<= 1;
+    char buffer_read[DECODE_READING_BUFF_SIZE] = {'\0'};
+    int fread_return = 0;
+    char output_char = 0;
+    while(1){
+        fread_return = fread(buffer_read, sizeof(char), DECODE_READING_BUFF_SIZE, search_file);
+        if(!fread_return){
+            break;
         }
-        if(finish)
+        for(int i = 0; i != fread_return; i++){
+            output_char = buffer_read[i];
+            for(int j = 0; j != BIT_SPACE; j++){
+                if((output_char & 128) == 0)
+                    search_tree = search_tree -> left;
+                else
+                    search_tree = search_tree -> right;
+                if(search_tree->character != STOP_CHAR){
+                    search_buffer[search_index % search_pattern_size] = search_tree->character;
+                    if(--offset < 1){
+                        if(check_match(search_buffer, searching_pattern, bm_table, good_suffix_table,
+                        search_index ,search_pattern_size, &offset))
+                            match_count++;
+                    }
+                    search_index++;
+                    input_size--;
+                    if(input_size == 0){
+                        finish = 1;
+                        break;
+                    }
+                    search_tree = tree;
+                }
+                output_char <<= 1;
+            }
+            if(finish == 1)
+                break;
+        }
+        if(finish == 1)
             break;
     }
     printf("%d\n", match_count);

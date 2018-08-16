@@ -9,6 +9,10 @@
 #define STOP_CHAR 257
 #define DFS_SIZE 866
 #define SEARCH_PATTERN_MAX 256
+#define ENCODE_READING_BUFF_SIZE 100000
+#define ENCODE_WRITING_BUFF_SIZE 50000
+#define DECODE_READING_BUFF_SIZE 100000
+#define DECODE_WRITING_BUFF_SIZE 50000
 
 // encode head field
 typedef struct node {
