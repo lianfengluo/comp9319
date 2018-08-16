@@ -274,6 +274,9 @@ int encode(char* orginal_file_name, char* output_file){
         }
         buffer_write[write_index++] = buffer_shift;
         fwrite(buffer_write, sizeof(char), write_index, encoded_file);
+    } else {
+        // buffer_write[write_index++] = buffer_shift;
+        fwrite(buffer_write, sizeof(char), write_index, encoded_file);
     }
     fclose(encoded_file);
     fclose(orginal_file);
