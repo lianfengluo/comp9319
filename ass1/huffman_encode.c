@@ -121,19 +121,19 @@ void exploit_tree(nnode *tree, char code_space[CODING_SIZE][CODED_LENGTH], int l
 }
 // encode main function
 int encode(char* orginal_file_name, char* output_file){
-    int count = 0;
-    int input;
+    int count = 0, read_size = 0;
     FILE *orginal_file = fopen(orginal_file_name, "rb");
     if(orginal_file == NULL){
         return -1;
     }
     int arr[CODING_SIZE] = {0};
-    while (1){
-        if (EOF == (input = fgetc(orginal_file)))
-            break;
-        arr[input]++;
-        count++;
-    };
+    unsigned char buffer_read[ENCODE_READING_BUFF_SIZE] = {'\0'};
+    while((read_size = fread(buffer_read, sizeof(char), ENCODE_READING_BUFF_SIZE, orginal_file))){
+        for(int i = 0; i != read_size; i++){
+            arr[(int)buffer_read[i]]++;
+        }
+        count += read_size;
+    }
     int rank[CODING_SIZE];
     int char_appear = 0;
     for (int i = 0; i != CODING_SIZE; i++)
@@ -235,18 +235,13 @@ int encode(char* orginal_file_name, char* output_file){
     int output_char;
     int mini_count = 0;
     char buffer_shift = '\0';
-    char buffer_read[ENCODE_READING_BUFF_SIZE] = {'\0'};
-    int read_size = 0;
-    char buffer_write[ENCODE_WRITING_BUFF_SIZE] = {'\0'};
+    read_size = 0;
+    unsigned char buffer_write[ENCODE_WRITING_BUFF_SIZE] = {'\0'};
     int write_index = 0;
     while(1){
         read_size = fread(buffer_read, sizeof(char), ENCODE_READING_BUFF_SIZE, orginal_file);
         for(int i = 0; i != read_size; i++){
-            if((int)buffer_read[i] < 0){
-                output_char = (int)buffer_read[i] + 256;
-            } else {
-                output_char = (int)buffer_read[i] ;
-            }
+            output_char = (int)buffer_read[i];
             for(int j = 0; j != length[output_char]; j++){
                 if(code_space[output_char][j] == '0')
                     buffer_shift <<= 1;
