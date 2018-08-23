@@ -1,13 +1,18 @@
 #include "huffman.h"
-// sort the frequency
-void _sort_probablity(int *arr1, int *arr2, size_t start, size_t end,
+/*
+ * _sort_probability
+ * arr1, arr2 is the array of frequency to be sort and the temp array to use for merge sort
+ * start, end are the indexs start and end for merge sort
+ * rank1, rank2 is the character corresponsed to arr1 and arr2
+*/
+void _sort_probability(int *arr1, int *arr2, size_t start, size_t end,
                                     int *rank1, int *rank2)
 {
     if (start + 1 == end)
         return;
     size_t mid = (start + end) / 2;
-    _sort_probablity(arr2, arr1, start, mid, rank2, rank1);
-    _sort_probablity(arr2, arr1, mid, end, rank2, rank1);
+    _sort_probability(arr2, arr1, start, mid, rank2, rank1);
+    _sort_probability(arr2, arr1, mid, end, rank2, rank1);
     size_t i = start, j = mid, k = start;
     while (i != mid && j != end)
     {
@@ -36,14 +41,22 @@ void _sort_probablity(int *arr1, int *arr2, size_t start, size_t end,
         j++;
     }
 }
-void sort_probablity(int* rank1, int *arr1) {
+/* sort_probability
+ * rank is the character corresponsed to arr
+ * arr is the array of frequency
+ */
+void sort_probability(int* rank1, int *arr1) {
     int arr2[CODING_SIZE];
     int rank2[CODING_SIZE];
     memcpy(arr2, arr1, CODING_SIZE * sizeof(int));
     memcpy(rank2, rank1, CODING_SIZE * sizeof(int));
-    _sort_probablity(arr1, arr2, 0, CODING_SIZE, rank1, rank2);
+    _sort_probability(arr1, arr2, 0, CODING_SIZE, rank1, rank2);
 }
-
+/* sort_huffman
+ * arr is the frequency array.
+ * the node_ptr is the array of node pointer be used to construct the tree
+ * the size is the number of different character that appear
+ */
 void sort_huffman(int *arr, nnode **node_ptr, int size) { 
     for(int i = size - 2; i != size; i++){
         for(int j  = 0; j != i; j++){
@@ -63,7 +76,11 @@ void sort_huffman(int *arr, nnode **node_ptr, int size) {
         }
     }
 }
-// build tree
+/* build_tree 
+ * frequency is the frequency array.
+ * the node_ptr is the array of node pointer be used to construct the tree
+ * the char_appear is the number of different character that appear
+ */
 nnode* build_tree(int frequency[], nnode** node_ptr, int char_appear){
     for(int i = char_appear - 1; i != 0; i--){
         nnode *new_node;
@@ -94,7 +111,13 @@ nnode* build_tree(int frequency[], nnode** node_ptr, int char_appear){
     nnode *tree = node_ptr[0];
     return tree;
 }
-
+/* exploit_tree
+ * tree is the tree be exploit
+ * code_space is the array with encoded code
+ * length is the length of corresponse char
+ * dfs_arr is the array for decode
+ * count_path is the length of dfs_arr
+ */
 void exploit_tree(nnode *tree, char code_space[CODING_SIZE][CODED_LENGTH], int length[CODING_SIZE],
      char dfs_arr[], int *count_path){
     if(!tree->right||!tree->left){
@@ -119,8 +142,11 @@ void exploit_tree(nnode *tree, char code_space[CODING_SIZE][CODED_LENGTH], int l
         exploit_tree(tree->right, code_space, length, dfs_arr, count_path);
     }
 }
-// encode main function
-int encode(char* orginal_file_name, char* output_file){
+/* encode 
+ * orginal_file_name is orginal file name
+ * output_file_name is output file name
+ */
+int encode(char* orginal_file_name, char* output_file_name){
     int count = 0, read_size = 0;
     FILE *orginal_file = fopen(orginal_file_name, "rb");
     if(orginal_file == NULL){
@@ -144,7 +170,7 @@ int encode(char* orginal_file_name, char* output_file){
     }
     // if is a null file
     if(char_appear > 1){
-        sort_probablity(rank, arr);
+        sort_probability(rank, arr);
     }
     else if(char_appear == 1){
         for(int i = 0; i != CODING_SIZE; i++){
@@ -159,7 +185,7 @@ int encode(char* orginal_file_name, char* output_file){
     // Padding note
     char rest_space_note[] = "Our tutor is the best. Raymond's class is very interesting.\n";
     int statistic_space = 1024;
-    FILE* encoded_file = fopen(output_file, "wb");
+    FILE* encoded_file = fopen(output_file_name, "wb");
     // write the dictionary
     if(encoded_file == NULL)
         return -1;
@@ -270,7 +296,6 @@ int encode(char* orginal_file_name, char* output_file){
         buffer_write[write_index++] = buffer_shift;
         fwrite(buffer_write, sizeof(char), write_index, encoded_file);
     } else {
-        // buffer_write[write_index++] = buffer_shift;
         fwrite(buffer_write, sizeof(char), write_index, encoded_file);
     }
     fclose(encoded_file);

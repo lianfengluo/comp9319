@@ -1,6 +1,19 @@
 Author: Lianfeng Luo
 Student id: z5170521
 Programming language C
+Static huffman encode, decode and search in the encoded file
+
+Usage:
+1. Compile
+    make
+2. encode
+    ./huffman -e (input file name) (encoded file name)
+3. decode
+    ./huffman -d (encoded file name) (output file name)
+4. search
+    ./huffman -s (search pattern) (encoded file name)
+
+
 The program is sperated into 3 parts:
 1. encode:
     First, I need to count the frequency of each character. After that, I reorder them base on the frequency, and trime it to the size than is only as large as the character in the orginal text. And build the tree basing on the two least freqent character. And build tree base on that, and in the meanwhile, I use the deep first search to record the structure of the tree, which can be use to retrieve that coded tree. Create a dictionary that map the character to the corresponsed code. Just write the encoded file, and try to padding the bits that not as big as 8 bits.

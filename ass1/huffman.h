@@ -14,7 +14,6 @@
 #define DECODE_READING_BUFF_SIZE 100000
 #define DECODE_WRITING_BUFF_SIZE 50000
 
-// encode head field
 typedef struct node {
     int character;
     char code[CODED_LENGTH];
@@ -30,7 +29,6 @@ typedef struct decode_tree {
 } D_tree;
 
 nnode* build_tree(int [], nnode** , int);
-// void deep_first_search_build_tree(D_tree*, int [], int* , int);
 void deep_first_search_build_tree(D_tree*, int [], int* , int);
 void _sort_probablity(int *, int *, size_t, size_t, int*, int*);
 void sort_probablity(int *, int*);
@@ -38,11 +36,9 @@ void sort_huffman(int *, nnode**, int);
 void exploit_tree(nnode *, char [CODING_SIZE][CODED_LENGTH], int[], char[], int*);
 int encode(char *, char *);
 
-// decode field
 int decode(char *, char *);
 void free_decode_tree(D_tree*);
 
-// search field
 int search(char *, char *);
 void build_table(int [], char [], int);
 void build_good_suffix_table(char [], int [], int [], int);
