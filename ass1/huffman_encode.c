@@ -127,6 +127,7 @@ void exploit_tree(nnode *tree, char code_space[CODING_SIZE][CODED_LENGTH], int l
         dfs_arr[*count_path] = (char)tree->character;
         (*count_path)++;
         length[tree->character] = strlen(tree->code);
+        return ;
     } else {
         dfs_arr[*count_path] = '0';
         (*count_path)++;
