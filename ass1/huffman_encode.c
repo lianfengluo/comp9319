@@ -226,9 +226,8 @@ int encode(char* orginal_file_name, char* output_file_name){
         dfs_arr[2] = rank[0];
         count_dfs_char = 3;
     }
-    else{
+    else
         exploit_tree(tree, code_space, length, dfs_arr, &count_dfs_char);
-    }
     for(int i = 0; i != char_appear; i++)
         free(node_ptr[i]);
     free(node_ptr);

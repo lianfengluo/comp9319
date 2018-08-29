@@ -111,7 +111,7 @@ int decode(char *src_name, char *output_file_name){
     char buffer_read[DECODE_READING_BUFF_SIZE] = {'\0'};
     D_tree* search_tree = tree;
     // input_size is the input size
-    int fread_return = 0, writing_index = 0, finish = 0;
+    int fread_return = 0, writing_index = 0;
     char output_char = 0;
     char buffer_write[DECODE_WRITING_BUFF_SIZE] = {'\0'};
     while(1){
@@ -131,7 +131,6 @@ int decode(char *src_name, char *output_file_name){
                     buffer_write[writing_index++] = (char)search_tree->character;
                     input_size--;
                     if(input_size == 0){
-                        finish = 1;
                         fwrite(buffer_write, sizeof(char), writing_index * sizeof(char), file_after_decode);
                         break;
                     }
@@ -143,10 +142,10 @@ int decode(char *src_name, char *output_file_name){
                 }
                 output_char <<= 1;
             }
-            if(finish == 1)
+            if(input_size == 0)
                 break;
         }
-        if(finish == 1)
+        if(input_size == 0)
             break;
     }
     fclose(file_after_decode);
