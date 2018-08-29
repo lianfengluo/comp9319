@@ -68,11 +68,11 @@ void sort_huffman(int *arr, nnode **node_ptr, int size) {
                 node_ptr[j] = node_ptr[i];
                 node_ptr[i] = temp_node;
             } 
-            else if (arr[i] == arr[j] && node_ptr[i]->height > node_ptr[j]->height) {
-                nnode *temp_node = node_ptr[j];
-                node_ptr[j] = node_ptr[i];
-                node_ptr[i] = temp_node;
-            }
+            // else if (arr[i] == arr[j] && node_ptr[i]->height > node_ptr[j]->height) {
+            //     nnode *temp_node = node_ptr[j];
+            //     node_ptr[j] = node_ptr[i];
+            //     node_ptr[i] = temp_node;
+            // }
         }
     }
 }
